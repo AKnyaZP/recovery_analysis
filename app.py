@@ -63,7 +63,7 @@ class DataInputWindow(QDialog):
                 item.setText(text)
             else:
                 QMessageBox.warning(self, "Некорректные данные", "Введите 'М' или 'Ж' в этот столбец.")
-                item.setText("")
+                item.setText("М")
 
         if column in [0, 2, 3, 4, 5, 6, 7, 8, 9]:
             try:
@@ -71,7 +71,7 @@ class DataInputWindow(QDialog):
             except ValueError:
                 # Выводим предупреждение
                 QMessageBox.warning(self, "Некорректные данные", "Введите число в этот столбец.")
-                item.setText("")
+                item.setText("0")
     def save_data_to_array(self, filename):
         # Получаем количество строк и столбцов в таблице
         num_rows = self.manual_table.rowCount()
@@ -88,7 +88,8 @@ class DataInputWindow(QDialog):
                 if item:
                     row_data.append(item.text())
                 else:
-                    row_data.append("")  # Добавляем пустую строку, если ячейка пуста
+                    QMessageBox.warning(self, "Некорректные данные", "Заполните все ячейки")
+                    return
             manual_input.append(row_data)
 
         # Теперь у вас есть массив data_array, содержащий данные из таблицы
@@ -152,24 +153,24 @@ class ChartWidget(QMainWindow):
 
         upload_button = QPushButton('Загрузить файл', self)
         upload_button.setFixedSize(220, 63)
-        upload_button.move(23, 970)
+        upload_button.move(23, 1000)
         upload_button.clicked.connect(self.get_filename)
 
         button_manual_input = QPushButton('Ввести данные вручную', self)
         button_manual_input.setFixedSize(220, 63)
-        button_manual_input.move(257, 970)
+        button_manual_input.move(257, 1000)
         #upload_table_button.clicked.connect(self.make_predict)
         # Кнопка "Ввести данные вручную"
         button_manual_input.clicked.connect(self.open_data_input_window)
 
         start_button = QPushButton('Спрогнозировать', self)
         start_button.setFixedSize(220, 63)
-        start_button.move(490, 970)
+        start_button.move(490, 1000)
         start_button.clicked.connect(self.chart_points)
 
         self.label = QLabel("Результат реабилитации на основе табличных данных", self)
         self.label.move(30, 900)
-        self.label.setFixedSize(675, 40)
+        self.label.setFixedSize(675, 70)
         font = QFont("Arial", 12)
         self.label.setFont(font)
 
@@ -288,11 +289,33 @@ class ChartWidget(QMainWindow):
                     item = QTableWidgetItem(str(*prediction[row_index-1]))
                     self.table.setItem(row_index-1, 10, item)
 
+            count_1 = prediction.count([1])
+            count_6 = 0
+            count_7 = 0
+            total_6 = 0
+            total_7 = 0
+            for row in range(self.table.rowCount()):
+                if int(self.table.item(row, 0).text()) < 7:
+                    total_6 += 1
+                    if int(self.table.item(row, 10).text()) == 1:
+                        count_6 += 1
+                else:
+                    total_7 += 1
+                    if int(self.table.item(row, 10).text()) == 1:
+                        count_7 += 1
+            text = f"Общий прогноз успешной реабилитации: {round(count_1 / len(prediction), 4) * 100}% ({count_1}/{len(prediction)})\n"
+            if total_6 != 0:
+                text += f"Пациентов младше 7-ми лет: {round(count_6 / total_6, 4) * 100}% ({count_6}/{total_6})\n"
+            if total_7 != 0:
+                text += f"Пациентов 7-ми лет и старше: {round(count_7 / total_7, 4) * 100}% ({count_7}/{total_7})"
+            self.label.setText(text)
+
     def chart_points(self):
         # Создание точек на графике
         if self.table.item(0,0) == None:
             QMessageBox.information(self, "Ошибка", "Вы не выбрали файл!")
         else:
+            self.chart.removeAllSeries()
             series_6 = QScatterSeries()
             series_6.setName("Младше 7 лет")
             series_6.setColor(Qt.GlobalColor.red)
