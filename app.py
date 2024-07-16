@@ -159,8 +159,6 @@ class ChartWidget(QMainWindow):
         button_manual_input = QPushButton('Ввести данные вручную', self)
         button_manual_input.setFixedSize(220, 63)
         button_manual_input.move(257, 1000)
-        #upload_table_button.clicked.connect(self.make_predict)
-        # Кнопка "Ввести данные вручную"
         button_manual_input.clicked.connect(self.open_data_input_window)
 
         start_button = QPushButton('Спрогнозировать', self)
@@ -343,8 +341,7 @@ class ChartWidget(QMainWindow):
             # Настройка осей
             self.chart.createDefaultAxes()
             self.chart.axisX().setTitleText("Индекс пациента")
-            self.chart.axisY().setTitleText("Предсказание")
-            #self.chart.axisY().setTitleText("Предсказание (0 - плохой прогноз, 1 - хороший прогноз)")
+            self.chart.axisY().setTitleText("Предсказание (0 - плохой прогноз, 1 - хороший прогноз)")
 
             self.chart.axisY().setRange(-0.1, 1.1)
             self.chart.axisY().setLabelFormat("%0.0f")
